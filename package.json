@@ -1,0 +1,32 @@
+{
+  "name": "ai-agent-platform",
+  "version": "1.0.0",
+  "main": "apps/api/src/server.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "start": "node apps/api/src/server.js",
+    "agent": "node apps/local-agent/src/agent.js",
+    "watchdog": "node apps/local-agent/watchdog/index.js",
+    "test": "node test/test-end-to-end.js"
+  },
+  "keywords": [
+    "ai-agent",
+    "computer-use",
+    "playwright",
+    "autonomous-agent",
+    "temporal",
+    "mcp"
+  ],
+  "author": "",
+  "license": "ISC",
+  "description": "Autonomous Computer-Use AI Agent Platform conforming to 18-page architectural specification",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.4",
+    "express": "^5.2.1",
+    "playwright-core": "^1.63.0",
+    "ws": "^8.21.3"
+  }
+}

@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  gateway:
+    build:
+      context: ../..
+      dockerfile: infrastructure/docker/Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - AGENT_SECRET=ai-agent-platform-secure-key-2026
+      - VAULT_SECRET=local-pc-master-passphrase-2026
+    volumes:
+      - ../../data:/app/data
+      - ../../logs:/app/logs
+    restart: unless-stopped

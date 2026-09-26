@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Autonomous Computer-Use AI Agent Platform</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Header -->
+    <header>
+      <div class="brand">
+        <div class="brand-icon">⚡</div>
+        <div class="brand-text">
+          <h1>Autonomous Computer-Use AI Agent</h1>
+          <p>Cloud AI Orchestrator + Local Windows Agent Runtime</p>
+        </div>
+      </div>
+      <div class="header-status">
+        <span class="heartbeat-tag" id="heartbeatDisplay">HB: 10s</span>
+        <div class="badge badge-online" id="deviceBadge">
+          <span class="pulse-dot"></span>
+          <span id="deviceStatusText">Connected: Aman-PC [ONLINE]</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Command Center -->
+    <section class="command-card">
+      <div class="command-input-group">
+        <input 
+          type="text" 
+          id="instructionInput" 
+          class="command-input" 
+          placeholder="Enter natural language command (e.g. 'Mere desktop par TestFolder naam ka folder banao.')..."
+          autocomplete="off"
+        >
+        <button id="dispatchBtn" class="btn-primary">
+          <span>Execute Plan</span>
+          <span>➔</span>
+        </button>
+      </div>
+
+      <div class="presets-label">Exact PDF Test Cases (One-Click Run):</div>
+      <div class="presets-container">
+        <button class="preset-chip" onclick="setCommand('Mere desktop par TestFolder naam ka folder banao.')">
+          <span class="chip-tag tag-c1">Test Case 1</span>
+          <span>Desktop par TestFolder banao</span>
+        </button>
+        <button class="preset-chip" onclick="setCommand('Chrome kholo aur Google par OpenAI search karo.')">
+          <span class="chip-tag tag-c2">Test Case 2</span>
+          <span>Chrome kholo aur Google par OpenAI search karo</span>
+        </button>
+        <button class="preset-chip" onclick="setCommand('Naukri.com open karo, mere account se login karo aur resume update karo.')">
+          <span class="chip-tag tag-c3">Section 6</span>
+          <span>Naukri.com Login & Resume Update (Vault + Human Verification)</span>
+        </button>
+        <button class="preset-chip" onclick="setCommand('Notepad kholo')">
+          <span class="chip-tag tag-c1">App Test</span>
+          <span>Notepad desktop app open karo</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Main Grid -->
+    <div class="main-grid">
+      <!-- Real-Time UI Execution Terminal (Section 17) -->
+      <section class="execution-card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>■</span>
+            <span>Real-time Execution Terminal (Section 17)</span>
+          </div>
+          <span class="badge" id="taskStatusBadge" style="background: rgba(56, 189, 248, 0.1); color: var(--accent-cyan);">IDLE</span>
+        </div>
+
+        <div class="realtime-terminal" id="terminalOutput">
+          <div class="terminal-line terminal-info">System initialized. Awaiting user instruction...</div>
+          <div class="terminal-line" style="color: var(--text-muted);">Cloud AI Brain connected. Local Agent runtime ready on Windows machine.</div>
+        </div>
+      </section>
+
+      <!-- Live Agent View (Section 17 & Page 13) -->
+      <section class="live-view-card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>■</span>
+            <span>Live Agent View (Playwright / Screen Stream)</span>
+          </div>
+          <span class="badge" id="liveActionTag" style="background: rgba(168, 85, 247, 0.15); color: var(--accent-purple);">STANDBY</span>
+        </div>
+
+        <div class="live-viewport">
+          <div class="viewport-bar">
+            <span>URL:</span>
+            <span id="viewportUrl" style="color: #cbd5e1;">about:blank</span>
+          </div>
+          <div class="viewport-content" id="viewportContainer">
+            <div class="viewport-placeholder" id="viewportPlaceholder">
+              <p>Live observation viewport inactive</p>
+              <p style="font-size: 11px; margin-top: 6px;">Screenshots stream in real-time during browser & desktop tasks</p>
+            </div>
+            <img id="viewportImg" class="viewport-img" style="display: none;" alt="Live View">
+          </div>
+          <div class="viewport-status-bar">
+            <span id="viewportCurrentAction">Ready for next action</span>
+            <span style="font-family: 'JetBrains Mono', monospace;" id="viewportFps">Active</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Dangerous Actions Approval Modal (Section 14) -->
+  <div class="modal-overlay" id="approvalModal">
+    <div class="modal-card">
+      <h3 style="color: var(--accent-rose);">⚠ Security Policy: High-Risk Action Detected</h3>
+      <p id="approvalMessage">This action is classified as HIGH RISK according to the Policy Engine. Do you want to proceed?</p>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="rejectBtn">Reject & Abort</button>
+        <button class="btn-danger" id="approveBtn">Approve Action</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Human Verification Modal (Section 6 Naukri.com example) -->
+  <div class="modal-overlay" id="humanVerificationModal">
+    <div class="modal-card">
+      <h3 style="color: var(--accent-amber);">🛡 Human Verification Required</h3>
+      <p id="humanVerificationMessage">
+        The target website requires interactive human verification (CAPTCHA, MFA, or OTP).<br><br>
+        Please solve the challenge directly in the browser window, then click <strong>Continue</strong>.
+      </p>
+      <div class="modal-actions">
+        <button class="btn-primary" id="humanDoneBtn">I Have Solved It ➔ Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
