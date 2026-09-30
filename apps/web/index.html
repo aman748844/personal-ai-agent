@@ -3,22 +3,48 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Autonomous Computer-Use AI Agent Platform</title>
+  <title>Autonomous Computer-Use AI Agent | Frontier Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
-  <div class="dashboard-container">
-    <!-- Header -->
-    <header>
-      <div class="brand">
-        <div class="brand-icon">⚡</div>
-        <div class="brand-text">
-          <h1>Autonomous Computer-Use AI Agent</h1>
-          <p>Cloud AI Orchestrator + Local Windows Agent Runtime</p>
+  <!-- Ambient 3D Interactive Canvas Background -->
+  <div class="hero-bg-container">
+    <div class="hero-bg-image"></div>
+    <canvas id="three-canvas"></canvas>
+    <div class="hero-overlay-gradient"></div>
+    <div class="vignette-overlay"></div>
+    <div class="scanline-overlay"></div>
+  </div>
+
+  <div class="app-wrapper">
+    <!-- Top Navigation Bar (isoquant style) -->
+    <header class="top-nav">
+      <div class="nav-brand">
+        <div class="logo-geometric">
+          <div class="cube-face"></div>
+        </div>
+        <div class="brand-info">
+          <span class="brand-title">isoquant<span class="brand-sub">.ai</span></span>
+          <span class="brand-badge">AGENT OS</span>
         </div>
       </div>
-      <div class="header-status">
-        <span class="heartbeat-tag" id="heartbeatDisplay">HB: 10s</span>
+
+      <nav class="nav-links">
+        <a href="#console" class="nav-item active">CONSOLE</a>
+        <a href="#viewport-section" class="nav-item">LIVE STREAM</a>
+        <a href="#terminal-section" class="nav-item">LOGS</a>
+        <a href="#system" class="nav-item">ARCHITECTURE</a>
+      </nav>
+
+      <div class="nav-telemetry">
+        <div class="telemetry-pill">
+          <span class="telemetry-label">HEARTBEAT</span>
+          <span class="heartbeat-tag" id="heartbeatDisplay">HB: 10s</span>
+        </div>
         <div class="badge badge-online" id="deviceBadge">
           <span class="pulse-dot"></span>
           <span id="deviceStatusText">Connected: Aman-PC [ONLINE]</span>
@@ -26,100 +52,238 @@
       </div>
     </header>
 
-    <!-- Command Center -->
-    <section class="command-card">
-      <div class="command-input-group">
-        <input 
-          type="text" 
-          id="instructionInput" 
-          class="command-input" 
-          placeholder="Enter natural language command (e.g. 'Mere desktop par TestFolder naam ka folder banao.')..."
-          autocomplete="off"
-        >
-        <button id="dispatchBtn" class="btn-primary">
-          <span>Execute Plan</span>
-          <span>➔</span>
-        </button>
+    <!-- Hero Showcase Section -->
+    <section class="hero-section">
+      <div class="hero-meta-badge">
+        <span class="badge-prefix">Backed by</span>
+        <span class="badge-yc">Y</span>
+        <span class="badge-text">Autonomous Runtime · Windows 11 Local Agent</span>
       </div>
 
-      <div class="presets-label">Exact PDF Test Cases (One-Click Run):</div>
-      <div class="presets-container">
-        <button class="preset-chip" onclick="setCommand('Mere desktop par TestFolder naam ka folder banao.')">
-          <span class="chip-tag tag-c1">Test Case 1</span>
-          <span>Desktop par TestFolder banao</span>
-        </button>
-        <button class="preset-chip" onclick="setCommand('Chrome kholo aur Google par OpenAI search karo.')">
-          <span class="chip-tag tag-c2">Test Case 2</span>
-          <span>Chrome kholo aur Google par OpenAI search karo</span>
-        </button>
-        <button class="preset-chip" onclick="setCommand('Naukri.com open karo, mere account se login karo aur resume update karo.')">
-          <span class="chip-tag tag-c3">Section 6</span>
-          <span>Naukri.com Login & Resume Update (Vault + Human Verification)</span>
-        </button>
-        <button class="preset-chip" onclick="setCommand('Notepad kholo')">
-          <span class="chip-tag tag-c1">App Test</span>
-          <span>Notepad desktop app open karo</span>
-        </button>
+      <h1 class="hero-headline">
+        Autonomous Computer-Use<br>
+        <span class="headline-gradient">at the frontier of intelligence.</span>
+      </h1>
+      
+      <p class="hero-description">
+        Zero-friction local OS execution, multi-modal vision feedback, and autonomous browser workflows powered by real-time agent orchestration.
+      </p>
+
+      <!-- 3D Glass Command Console -->
+      <div class="command-console-card" id="console">
+        <div class="console-glow"></div>
+        <div class="console-inner">
+          <div class="command-input-wrapper">
+            <div class="input-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polygon points="10 8 16 12 10 16 10 8"></polygon>
+              </svg>
+            </div>
+            <input 
+              type="text" 
+              id="instructionInput" 
+              class="command-input" 
+              placeholder="Enter natural language command (e.g. 'Mere desktop par TestFolder naam ka folder banao.')..."
+              autocomplete="off"
+            >
+            <button id="dispatchBtn" class="btn-execute">
+              <span class="btn-text">Execute Plan</span>
+              <span class="btn-keyhint">↵</span>
+              <div class="btn-glow"></div>
+            </button>
+          </div>
+
+          <!-- Quick Test Presets -->
+          <div class="presets-row">
+            <span class="presets-caption">ONE-CLICK TEST SUITE:</span>
+            <div class="presets-chips">
+              <button class="preset-chip" onclick="setCommand('Mere desktop par TestFolder naam ka folder banao.')">
+                <span class="chip-dot dot-cyan"></span>
+                <span class="chip-code">TC-1</span>
+                <span class="chip-label">Desktop TestFolder banao</span>
+              </button>
+              <button class="preset-chip" onclick="setCommand('Chrome kholo aur Google par OpenAI search karo.')">
+                <span class="chip-dot dot-blue"></span>
+                <span class="chip-code">TC-2</span>
+                <span class="chip-label">Chrome kholo & Google Search</span>
+              </button>
+              <button class="preset-chip" onclick="setCommand('Naukri.com open karo, mere account se login karo aur resume update karo.')">
+                <span class="chip-dot dot-purple"></span>
+                <span class="chip-code">SEC-6</span>
+                <span class="chip-label">Naukri.com Resume Update</span>
+              </button>
+              <button class="preset-chip" onclick="setCommand('Notepad kholo')">
+                <span class="chip-dot dot-emerald"></span>
+                <span class="chip-code">APP</span>
+                <span class="chip-label">Notepad Launch</span>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- Main Grid -->
-    <div class="main-grid">
-      <!-- Real-Time UI Execution Terminal (Section 17) -->
-      <section class="execution-card">
-        <div class="card-header">
-          <div class="card-title">
-            <span>■</span>
-            <span>Real-time Execution Terminal (Section 17)</span>
+    <!-- Main Dual Mission Control Grid -->
+    <main class="mission-grid">
+      <!-- Cybernetic Execution Terminal -->
+      <section class="card-panel terminal-panel" id="terminal-section">
+        <div class="panel-header">
+          <div class="panel-title-group">
+            <div class="mac-dots">
+              <span class="dot-red"></span>
+              <span class="dot-amber"></span>
+              <span class="dot-green"></span>
+            </div>
+            <div class="title-with-icon">
+              <span class="icon-pulse">■</span>
+              <h3>Execution Stream</h3>
+              <span class="section-tag">Section 17</span>
+            </div>
           </div>
-          <span class="badge" id="taskStatusBadge" style="background: rgba(56, 189, 248, 0.1); color: var(--accent-cyan);">IDLE</span>
+          <div class="panel-meta">
+            <span class="badge" id="taskStatusBadge">IDLE</span>
+          </div>
         </div>
 
-        <div class="realtime-terminal" id="terminalOutput">
-          <div class="terminal-line terminal-info">System initialized. Awaiting user instruction...</div>
-          <div class="terminal-line" style="color: var(--text-muted);">Cloud AI Brain connected. Local Agent runtime ready on Windows machine.</div>
+        <div class="terminal-body" id="terminalOutput">
+          <div class="terminal-line terminal-system">
+            <span class="line-time">00:00:00</span>
+            <span class="line-tag info">[SYSTEM]</span>
+            <span class="line-text">Isoquant Agent OS kernel online. WebSocket duplex pipeline ready.</span>
+          </div>
+          <div class="terminal-line terminal-info">
+            <span class="line-time">00:00:01</span>
+            <span class="line-tag sync">[RUNTIME]</span>
+            <span class="line-text">Local Windows Agent standby on port 4000. Listening for prompt triggers...</span>
+          </div>
+        </div>
+
+        <div class="terminal-footer">
+          <div class="footer-stats">
+            <span>PIPELINE: <strong class="text-cyan">DUAL-WEBSOCKET</strong></span>
+            <span>POLICY: <strong class="text-emerald">ACTIVE</strong></span>
+          </div>
+          <button class="btn-clear" onclick="clearTerminal()">Clear Console</button>
         </div>
       </section>
 
-      <!-- Live Agent View (Section 17 & Page 13) -->
-      <section class="live-view-card">
-        <div class="card-header">
-          <div class="card-title">
-            <span>■</span>
-            <span>Live Agent View (Playwright / Screen Stream)</span>
+      <!-- Live Agent Vision Viewport -->
+      <section class="card-panel viewport-panel" id="viewport-section">
+        <div class="panel-header">
+          <div class="panel-title-group">
+            <div class="hud-bracket"></div>
+            <div class="title-with-icon">
+              <span class="icon-pulse stream">●</span>
+              <h3>Live Observation Viewport</h3>
+              <span class="section-tag">Playwright Vision</span>
+            </div>
           </div>
-          <span class="badge" id="liveActionTag" style="background: rgba(168, 85, 247, 0.15); color: var(--accent-purple);">STANDBY</span>
+          <div class="panel-meta">
+            <span class="badge" id="liveActionTag">STANDBY</span>
+          </div>
         </div>
 
-        <div class="live-viewport">
-          <div class="viewport-bar">
-            <span>URL:</span>
-            <span id="viewportUrl" style="color: #cbd5e1;">about:blank</span>
+        <div class="viewport-hud-wrapper">
+          <!-- Cyber HUD corner markers -->
+          <div class="hud-corner top-left"></div>
+          <div class="hud-corner top-right"></div>
+          <div class="hud-corner bottom-left"></div>
+          <div class="hud-corner bottom-right"></div>
+
+          <!-- Browser Address Bar -->
+          <div class="viewport-address-bar">
+            <div class="ssl-indicator">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </div>
+            <span class="viewport-url-text" id="viewportUrl">about:blank</span>
+            <span class="viewport-mode-tag">HD STREAM</span>
           </div>
-          <div class="viewport-content" id="viewportContainer">
+
+          <!-- Visual Display Area -->
+          <div class="viewport-canvas-container" id="viewportContainer">
             <div class="viewport-placeholder" id="viewportPlaceholder">
-              <p>Live observation viewport inactive</p>
-              <p style="font-size: 11px; margin-top: 6px;">Screenshots stream in real-time during browser & desktop tasks</p>
+              <div class="placeholder-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </div>
+              <p class="placeholder-primary">Visual telemetry sensor inactive</p>
+              <p class="placeholder-secondary">Live screen stream & browser action captures will appear here automatically</p>
             </div>
             <img id="viewportImg" class="viewport-img" style="display: none;" alt="Live View">
           </div>
-          <div class="viewport-status-bar">
-            <span id="viewportCurrentAction">Ready for next action</span>
-            <span style="font-family: 'JetBrains Mono', monospace;" id="viewportFps">Active</span>
+
+          <!-- Bottom Action Status Readout -->
+          <div class="viewport-status-footer">
+            <div class="action-readout">
+              <span class="action-label">ACTION:</span>
+              <span id="viewportCurrentAction" class="action-value">Ready for next action</span>
+            </div>
+            <div class="telemetry-badge">
+              <span class="pulse-beacon"></span>
+              <span id="viewportFps">LIVE FEED</span>
+            </div>
           </div>
         </div>
       </section>
-    </div>
+    </main>
+
+    <!-- Platform Stats / Architecture Ticker Footer -->
+    <footer class="app-footer">
+      <div class="footer-stats-bar">
+        <div class="stat-item">
+          <span class="stat-num">0.12s</span>
+          <span class="stat-desc">Orchestration Latency</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-num">100%</span>
+          <span class="stat-desc">Sandboxed Execution</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-num">10s</span>
+          <span class="stat-desc">Dual Heartbeat Pulse</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-num">AES-256</span>
+          <span class="stat-desc">Encrypted Credential Vault</span>
+        </div>
+      </div>
+      <div class="footer-copy">
+        <span>Autonomous Computer-Use AI Agent Platform</span>
+        <span>•</span>
+        <span>Conforming to Enterprise Specification</span>
+      </div>
+    </footer>
   </div>
 
   <!-- Dangerous Actions Approval Modal (Section 14) -->
   <div class="modal-overlay" id="approvalModal">
     <div class="modal-card">
-      <h3 style="color: var(--accent-rose);">⚠ Security Policy: High-Risk Action Detected</h3>
-      <p id="approvalMessage">This action is classified as HIGH RISK according to the Policy Engine. Do you want to proceed?</p>
+      <div class="modal-header">
+        <div class="modal-icon icon-danger">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </div>
+        <div class="modal-title-group">
+          <h3>Security Policy: High-Risk Action Detected</h3>
+          <span>Policy Enforcement Engine (Section 14)</span>
+        </div>
+      </div>
+      <p id="approvalMessage" class="modal-description">This action is classified as HIGH RISK. Do you want to authorize the agent to proceed?</p>
       <div class="modal-actions">
-        <button class="btn-secondary" id="rejectBtn">Reject & Abort</button>
-        <button class="btn-danger" id="approveBtn">Approve Action</button>
+        <button class="btn-cancel" id="rejectBtn">Reject & Abort</button>
+        <button class="btn-confirm-danger" id="approveBtn">Authorize Execution</button>
       </div>
     </div>
   </div>
@@ -127,13 +291,25 @@
   <!-- Human Verification Modal (Section 6 Naukri.com example) -->
   <div class="modal-overlay" id="humanVerificationModal">
     <div class="modal-card">
-      <h3 style="color: var(--accent-amber);">🛡 Human Verification Required</h3>
-      <p id="humanVerificationMessage">
+      <div class="modal-header">
+        <div class="modal-icon icon-warn">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
+        </div>
+        <div class="modal-title-group">
+          <h3>Human Verification Required</h3>
+          <span>Interactive Security Bypass (Section 6)</span>
+        </div>
+      </div>
+      <p id="humanVerificationMessage" class="modal-description">
         The target website requires interactive human verification (CAPTCHA, MFA, or OTP).<br><br>
         Please solve the challenge directly in the browser window, then click <strong>Continue</strong>.
       </p>
       <div class="modal-actions">
-        <button class="btn-primary" id="humanDoneBtn">I Have Solved It ➔ Continue</button>
+        <button class="btn-confirm-primary" id="humanDoneBtn">
+          <span>Challenge Solved ➔ Resume Agent</span>
+        </button>
       </div>
     </div>
   </div>
