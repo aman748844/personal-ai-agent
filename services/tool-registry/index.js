@@ -189,6 +189,31 @@ const TOOL_DEFINITIONS = [
     risk: RiskLevel.LOW,
     parameters: { type: 'object' }
   },
+  {
+    name: 'browser.upload_file',
+    category: 'browser',
+    description: 'Uploads a local file to a web input (e.g. resume upload)',
+    risk: RiskLevel.MEDIUM,
+    parameters: {
+      type: 'object',
+      properties: {
+        selector: { type: 'string' },
+        path: { type: 'string' }
+      }
+    }
+  },
+  {
+    name: 'browser.wait',
+    category: 'browser',
+    description: 'Waits for specified seconds for page/dom stabilization',
+    risk: RiskLevel.LOW,
+    parameters: {
+      type: 'object',
+      properties: {
+        seconds: { type: 'number' }
+      }
+    }
+  },
 
   // OS & Application Tools
   {

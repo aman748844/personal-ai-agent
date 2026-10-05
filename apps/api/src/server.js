@@ -5,6 +5,8 @@
  *  2) /ui: Real-time broadcast channel for Web Dashboard
  */
 
+require('dotenv').config();
+
 const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
@@ -110,23 +112,30 @@ wss.on('connection', (ws, request, pathname) => {
   if (pathname === '/agent') {
     logger.info('APIGateway', 'Local Agent WebSocket connection initiated.');
     agentOrchestrator.setLocalAgentConnection(ws);
-    db.updateDeviceStatus('device_aman_pc', 'ONLINE');
-    notification.broadcast({ type: 'DEVICE_STATUS_CHANGE', deviceId: 'device_aman_pc', status: 'ONLINE' });
 
     ws.on('message', (data) => {
       try {
         const msg = JSON.parse(data.toString());
 
         if (msg.type === MessageTypes.REGISTER_DEVICE) {
-          logger.info('APIGateway', `Registered device: ${msg.deviceId}`);
-          db.updateDeviceStatus(msg.deviceId, 'ONLINE', msg.deviceInfo?.hostname || 'Aman-PC');
-          ws.send(JSON.stringify({ type: MessageTypes.REGISTER_DEVICE_ACK, deviceId: msg.deviceId }));
-          notification.broadcast({ type: 'DEVICE_STATUS_CHANGE', deviceId: msg.deviceId, status: 'ONLINE' });
+          const deviceId = msg.deviceId || 'device_pc';
+          const hostname = msg.deviceInfo?.hostname || deviceId || 'Local-PC';
+          ws.deviceId = deviceId;
+          ws.hostname = hostname;
+          logger.info('APIGateway', `Registered device: ${deviceId} (${hostname})`);
+          db.updateDeviceStatus(deviceId, 'ONLINE', hostname);
+          ws.send(JSON.stringify({ type: MessageTypes.REGISTER_DEVICE_ACK, deviceId }));
+          notification.broadcast({
+            type: 'DEVICE_STATUS_CHANGE',
+            deviceId,
+            hostname,
+            status: 'ONLINE'
+          });
         } else if (msg.type === MessageTypes.HEARTBEAT) {
-          // Heartbeat exchange (10s)
-          db.updateDeviceStatus(msg.deviceId, 'ONLINE');
+          const deviceId = ws.deviceId || msg.deviceId || 'device_pc';
+          db.updateDeviceStatus(deviceId, 'ONLINE');
           ws.send(JSON.stringify({ type: MessageTypes.HEARTBEAT_ACK, timestamp: Date.now() }));
-          notification.broadcast({ type: 'HEARTBEAT_PULSE', deviceId: msg.deviceId, timestamp: Date.now() });
+          notification.broadcast({ type: 'HEARTBEAT_PULSE', deviceId, timestamp: Date.now() });
         } else if (msg.type === MessageTypes.TOOL_RESULT) {
           agentOrchestrator.handleToolResult(msg);
         } else if (msg.type === MessageTypes.LIVE_OBSERVATION) {
@@ -138,9 +147,16 @@ wss.on('connection', (ws, request, pathname) => {
     });
 
     ws.on('close', () => {
-      logger.warn('APIGateway', 'Local Agent disconnected.');
-      db.updateDeviceStatus('device_aman_pc', 'OFFLINE');
-      notification.broadcast({ type: 'DEVICE_STATUS_CHANGE', deviceId: 'device_aman_pc', status: 'OFFLINE' });
+      const deviceId = ws.deviceId || 'device_pc';
+      const hostname = ws.hostname || 'Local Agent';
+      logger.warn('APIGateway', `Local Agent disconnected: ${deviceId}`);
+      db.updateDeviceStatus(deviceId, 'OFFLINE');
+      notification.broadcast({
+        type: 'DEVICE_STATUS_CHANGE',
+        deviceId,
+        hostname,
+        status: 'OFFLINE'
+      });
     });
 
   } else if (pathname === '/ui') {

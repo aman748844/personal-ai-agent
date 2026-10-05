@@ -87,6 +87,17 @@
               placeholder="Enter natural language command (e.g. 'Mere desktop par TestFolder naam ka folder banao.')..."
               autocomplete="off"
             >
+            <!-- Interactive Voice Recognition Button (MIC) -->
+            <button id="micBtn" class="btn-mic" type="button" title="Voice Input: Click to speak in Hindi or English">
+              <div class="mic-ripple"></div>
+              <svg class="mic-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" x2="12" y1="19" y2="22"></line>
+              </svg>
+              <span class="mic-label" id="micLabel">MIC</span>
+            </button>
+
             <button id="dispatchBtn" class="btn-execute">
               <span class="btn-text">Execute Plan</span>
               <span class="btn-keyhint">↵</span>
@@ -94,10 +105,32 @@
             </button>
           </div>
 
+          <!-- Real-Time Voice Feedback HUD -->
+          <div id="voiceStatusBar" class="voice-status-bar" style="display: none;">
+            <div class="voice-pulse-indicator">
+              <span class="voice-wave-bar"></span>
+              <span class="voice-wave-bar"></span>
+              <span class="voice-wave-bar"></span>
+              <span class="voice-wave-bar"></span>
+            </div>
+            <span id="voiceStatusText" class="voice-status-text">Listening... Speak now (Hindi / English)</span>
+            <button id="cancelVoiceBtn" class="voice-cancel-btn" title="Stop listening">✕ Stop</button>
+          </div>
+
           <!-- Quick Test Presets -->
           <div class="presets-row">
             <span class="presets-caption">ONE-CLICK TEST SUITE:</span>
             <div class="presets-chips">
+              <button class="preset-chip" onclick="setCommand('Naukri.com open karo, mere account se login karo aur resume update karo.')">
+                <span class="chip-dot dot-purple"></span>
+                <span class="chip-code">SEC-6</span>
+                <span class="chip-label">Naukri.com Resume Update</span>
+              </button>
+              <button class="preset-chip" onclick="setCommand('YouTube par lo-fi chill beats chalao.')">
+                <span class="chip-dot dot-rose"></span>
+                <span class="chip-code">YT</span>
+                <span class="chip-label">YouTube Music Play</span>
+              </button>
               <button class="preset-chip" onclick="setCommand('Mere desktop par TestFolder naam ka folder banao.')">
                 <span class="chip-dot dot-cyan"></span>
                 <span class="chip-code">TC-1</span>
@@ -107,11 +140,6 @@
                 <span class="chip-dot dot-blue"></span>
                 <span class="chip-code">TC-2</span>
                 <span class="chip-label">Chrome kholo & Google Search</span>
-              </button>
-              <button class="preset-chip" onclick="setCommand('Naukri.com open karo, mere account se login karo aur resume update karo.')">
-                <span class="chip-dot dot-purple"></span>
-                <span class="chip-code">SEC-6</span>
-                <span class="chip-label">Naukri.com Resume Update</span>
               </button>
               <button class="preset-chip" onclick="setCommand('Notepad kholo')">
                 <span class="chip-dot dot-emerald"></span>

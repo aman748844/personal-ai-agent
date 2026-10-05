@@ -3,6 +3,8 @@
  * Executes local actions on the user's PC with deterministic verification and security checks.
  */
 
+require('dotenv').config();
+
 const ConnectionManager = require('../connection');
 const fileSystemTool = require('../filesystem');
 const browserAgent = require('../browser');
@@ -15,11 +17,27 @@ const { verifyCommand } = require('../security');
 const logger = require('../../../packages/logging');
 const { MessageTypes } = require('../../../packages/shared-types');
 
+function parseCliArgs() {
+  const args = process.argv.slice(2);
+  const options = {};
+  for (let i = 0; i < args.length; i++) {
+    if ((args[i] === '--gateway' || args[i] === '-g') && args[i + 1]) {
+      options.gatewayUrl = args[++i];
+    } else if ((args[i] === '--device' || args[i] === '-d') && args[i + 1]) {
+      options.deviceId = args[++i];
+    } else if (args[i] === '--token' && args[i + 1]) {
+      options.deviceToken = args[++i];
+    }
+  }
+  return options;
+}
+
 class LocalAgent {
   constructor(options = {}) {
-    this.deviceId = options.deviceId || process.env.DEVICE_ID || 'device_aman_pc';
-    this.deviceToken = options.deviceToken || process.env.DEVICE_TOKEN || 'device_token_aman_pc';
-    this.gatewayUrl = options.gatewayUrl || process.env.GATEWAY_WS_URL || 'ws://localhost:4000/agent';
+    const cli = parseCliArgs();
+    this.deviceId = options.deviceId || cli.deviceId || process.env.DEVICE_ID || 'device_aman_pc';
+    this.deviceToken = options.deviceToken || cli.deviceToken || process.env.DEVICE_TOKEN || 'device_token_aman_pc';
+    this.gatewayUrl = options.gatewayUrl || cli.gatewayUrl || process.env.GATEWAY_WS_URL || 'ws://localhost:4000/agent';
 
     this.connection = new ConnectionManager({
       gatewayUrl: this.gatewayUrl,
@@ -108,10 +126,16 @@ class LocalAgent {
           result = await browserAgent.navigate(params.url);
           break;
         case 'browser.type':
-          result = await browserAgent.type(params.selector, params.text, params.vault_reference);
+          result = await browserAgent.type(params.selector, params.text, params.vault_reference, params.vault_field);
           break;
         case 'browser.click':
           result = await browserAgent.click(params.selector);
+          break;
+        case 'browser.upload_file':
+          result = await browserAgent.uploadFile(params.selector, params.path || params.filePath);
+          break;
+        case 'browser.wait':
+          result = await browserAgent.wait(params.seconds);
           break;
         case 'browser.screenshot':
           result = await browserAgent.screenshot(params.fullPage);

@@ -16,6 +16,11 @@ const heartbeatDisplay = document.getElementById('heartbeatDisplay');
 const taskStatusBadge = document.getElementById('taskStatusBadge');
 const instructionInput = document.getElementById('instructionInput');
 const dispatchBtn = document.getElementById('dispatchBtn');
+const micBtn = document.getElementById('micBtn');
+const micLabel = document.getElementById('micLabel');
+const voiceStatusBar = document.getElementById('voiceStatusBar');
+const voiceStatusText = document.getElementById('voiceStatusText');
+const cancelVoiceBtn = document.getElementById('cancelVoiceBtn');
 
 const viewportImg = document.getElementById('viewportImg');
 const viewportPlaceholder = document.getElementById('viewportPlaceholder');
@@ -83,7 +88,12 @@ function handleIncomingEvent(msg) {
       break;
 
     case 'DEVICE_STATUS_CHANGE':
-      setDeviceOnline(msg.status === 'ONLINE');
+      setDeviceOnline(msg.status === 'ONLINE', msg.hostname || msg.deviceId);
+      if (msg.status === 'ONLINE') {
+        appendTerminalLine(`✓ Connected to ${msg.hostname || msg.deviceId} agent runtime`, 'terminal-success');
+      } else {
+        appendTerminalLine(`⚠ Device ${msg.hostname || msg.deviceId} disconnected`, 'terminal-warn');
+      }
       break;
 
     case 'HEARTBEAT_PULSE':
@@ -167,13 +177,16 @@ function handleIncomingEvent(msg) {
   }
 }
 
-function setDeviceOnline(isOnline) {
+let currentConnectedDevice = 'Local PC';
+
+function setDeviceOnline(isOnline, deviceName = null) {
+  if (deviceName) currentConnectedDevice = deviceName;
   if (isOnline) {
     deviceBadge.className = 'badge badge-online';
-    deviceStatusText.innerText = 'Connected: Aman-PC [ONLINE]';
+    deviceStatusText.innerText = `Connected: ${currentConnectedDevice} [ONLINE]`;
   } else {
     deviceBadge.className = 'badge badge-offline';
-    deviceStatusText.innerText = 'Aman-PC [OFFLINE - Launch Agent]';
+    deviceStatusText.innerText = `${currentConnectedDevice} [OFFLINE - Launch Agent]`;
   }
 }
 
@@ -236,6 +249,142 @@ dispatchBtn.addEventListener('click', dispatchTask);
 instructionInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') dispatchTask();
 });
+
+// ==========================================================================
+// VOICE RECOGNITION (MIC) CONTROLLER
+// Web Speech API with bilingual Hindi / Indian English support
+// ==========================================================================
+
+let recognition = null;
+let isListening = false;
+
+function initVoiceRecognition() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    if (micBtn) {
+      micBtn.title = 'Speech Recognition is not supported by your browser. Please use Chrome or Edge.';
+      micBtn.style.opacity = '0.6';
+    }
+    return;
+  }
+
+  recognition = new SpeechRecognition();
+  recognition.continuous = false;
+  recognition.interimResults = true;
+  recognition.lang = 'hi-IN'; // Highly optimized for Hindi + Indian English (Hinglish)
+
+  recognition.onstart = () => {
+    isListening = true;
+    micBtn.classList.add('listening');
+    if (micLabel) micLabel.innerText = 'LISTENING';
+    if (voiceStatusBar) voiceStatusBar.style.display = 'flex';
+    if (voiceStatusText) voiceStatusText.innerText = 'Listening... Bolye (e.g. "Naukri.com open karo aur resume update karo")...';
+    appendTerminalLine('🎙️ Microphone active. Listening for voice instruction...', 'terminal-info');
+    triggerMonolithPulse(0xf43f5e);
+  };
+
+  recognition.onresult = (event) => {
+    let interimTranscript = '';
+    let finalTranscript = '';
+
+    for (let i = event.resultIndex; i < event.results.length; ++i) {
+      if (event.results[i].isFinal) {
+        finalTranscript += event.results[i][0].transcript;
+      } else {
+        interimTranscript += event.results[i][0].transcript;
+      }
+    }
+
+    const currentText = (finalTranscript || interimTranscript).trim();
+    if (currentText) {
+      instructionInput.value = currentText;
+      if (voiceStatusText) voiceStatusText.innerText = `🎙️ Heard: "${currentText}"`;
+    }
+  };
+
+  recognition.onerror = (event) => {
+    console.warn('Voice recognition error:', event.error);
+    stopVoiceRecognition();
+    if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+      appendTerminalLine('⚠ Microphone access denied. Please click the mic icon in your browser URL bar to allow microphone permission.', 'terminal-warn');
+      if (voiceStatusBar) {
+        voiceStatusBar.style.display = 'flex';
+        if (voiceStatusText) voiceStatusText.innerText = 'Microphone permission blocked in browser. Please allow it.';
+      }
+    } else if (event.error !== 'no-speech') {
+      appendTerminalLine(`Voice recognition error: ${event.error}`, 'terminal-warn');
+    }
+  };
+
+  recognition.onend = () => {
+    const text = instructionInput.value.trim();
+    stopVoiceRecognition();
+    if (text) {
+      if (voiceStatusText) voiceStatusText.innerText = `✓ Voice instruction captured: "${text}"`;
+      appendTerminalLine(`Voice Command Captured: "${text}"`, 'terminal-success');
+      // Auto-execute plan after a brief pause so user can see what was heard
+      setTimeout(() => {
+        if (instructionInput.value.trim() === text && text.length > 2) {
+          dispatchTask();
+        }
+      }, 1000);
+    }
+  };
+}
+
+function startVoiceRecognition() {
+  if (!recognition) initVoiceRecognition();
+  if (!recognition) {
+    alert('Voice recognition is not supported in this browser. Please use Google Chrome or Microsoft Edge.');
+    return;
+  }
+  try {
+    recognition.start();
+  } catch (err) {
+    console.warn('Recognition start exception:', err);
+    try {
+      recognition.stop();
+      setTimeout(() => recognition.start(), 200);
+    } catch {}
+  }
+}
+
+function stopVoiceRecognition() {
+  isListening = false;
+  if (recognition) {
+    try { recognition.stop(); } catch {}
+  }
+  if (micBtn) {
+    micBtn.classList.remove('listening');
+    if (micLabel) micLabel.innerText = 'MIC';
+  }
+  if (voiceStatusBar) {
+    setTimeout(() => {
+      if (!isListening) voiceStatusBar.style.display = 'none';
+    }, 2500);
+  }
+}
+
+if (micBtn) {
+  micBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (isListening) {
+      stopVoiceRecognition();
+    } else {
+      startVoiceRecognition();
+    }
+  });
+}
+
+if (cancelVoiceBtn) {
+  cancelVoiceBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    stopVoiceRecognition();
+  });
+}
+
+// Initialize Voice capabilities on load
+initVoiceRecognition();
 
 // Approvals
 approveBtn.addEventListener('click', async () => {

@@ -19,6 +19,8 @@ class PolicyEngine {
       'browser.navigate': RiskLevel.LOW,
       'browser.screenshot': RiskLevel.LOW,
       'browser.observe': RiskLevel.LOW,
+      'browser.check_human_verification': RiskLevel.LOW,
+      'browser.wait': RiskLevel.LOW,
       'os.process_list': RiskLevel.LOW,
       'computer.screenshot': RiskLevel.LOW,
 
@@ -29,6 +31,7 @@ class PolicyEngine {
       'browser.click': RiskLevel.MEDIUM,
       'browser.select': RiskLevel.MEDIUM,
       'browser.upload': RiskLevel.MEDIUM,
+      'browser.upload_file': RiskLevel.MEDIUM,
       'browser.download': RiskLevel.MEDIUM,
       'os.open_application': RiskLevel.MEDIUM,
       'computer.keyboard_type': RiskLevel.MEDIUM,

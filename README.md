@@ -34,17 +34,20 @@ npm start
 ```
 *Access the Web Dashboard at: `http://localhost:4000`*
 
-### 3. Start Local Windows Agent Runtime
-In a second terminal:
+### 3. Start Local Agent on ANY System (Windows / Mac / Linux)
+- **Windows (1-Click)**: Double click [run-agent.bat](file:///run-agent.bat) (or run in terminal)
+- **Mac / Linux**: Run `./run-agent.sh ws://<YOUR_AWS_OR_LOCAL_IP>:4000/agent`
+- Or via NPM:
 ```bash
 npm run agent
-```
-*(Optional) To run with the Watchdog supervisor:*
-```bash
-npm run watchdog
+# Or connecting to remote AWS:
+npm run agent -- --gateway ws://<YOUR_AWS_IP>:4000/agent
 ```
 
-### 4. Run Automated End-to-End Tests
+### 4. Deploy to AWS Free Tier (EC2)
+Follow the step-by-step [AWS Deployment Guide](file:///docs/AWS_DEPLOYMENT_GUIDE.md) to deploy the Cloud Gateway and Dashboard to AWS EC2 Free Tier in 5 minutes!
+
+### 5. Run Automated End-to-End Tests
 ```bash
 npm test
 ```
