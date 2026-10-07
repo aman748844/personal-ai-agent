@@ -342,6 +342,45 @@
     </div>
   </div>
 
+  <!-- Microphone Security Guide Modal (For HTTP Cloud Deployments) -->
+  <div class="modal-overlay" id="micPermissionModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-icon icon-warn">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+            <line x1="12" x2="12" y1="19" y2="22"></line>
+          </svg>
+        </div>
+        <div class="modal-title-group">
+          <h3>Microphone Setup (Browser Security Policy)</h3>
+          <span>Enable MIC on Chrome / Edge</span>
+        </div>
+      </div>
+      <div class="modal-description" style="font-size: 13px; line-height: 1.6;">
+        <p style="margin-bottom: 10px;">
+          Google Chrome aur Edge browser <strong>plain HTTP</strong> IP addresses (<code id="currentOriginCode" style="color: #38bdf8; background: rgba(56,189,248,0.1); padding: 2px 6px; border-radius: 4px;">http://54.81.199.45:4000</code>) par by default microphone block karte hain.
+        </p>
+        <p style="margin-bottom: 8px; font-weight: 600; color: #f1f5f9;">⚡ 20 Seconds Quick Fix (Chrome / Edge):</p>
+        <ol style="padding-left: 20px; margin-bottom: 12px; color: #cbd5e1; font-size: 13px;">
+          <li style="margin-bottom: 6px;">Naya tab kholein: <code style="color: #f59e0b; background: rgba(245,158,11,0.12); padding: 2px 6px; border-radius: 4px; user-select: all;">chrome://flags/#unsafely-treat-insecure-origin-as-secure</code></li>
+          <li style="margin-bottom: 6px;">Box mein URL paste karein: <strong id="copyOriginText" style="color: #34d399;">http://54.81.199.45:4000</strong></li>
+          <li style="margin-bottom: 6px;">Dropdown se <strong>Enabled</strong> select karein aur niche <strong>Relaunch</strong> par click karein.</li>
+        </ol>
+        <p style="font-size: 12px; color: #94a3b8; background: rgba(255,255,255,0.03); padding: 8px 12px; border-radius: 8px; border-left: 3px solid #38bdf8;">
+          💡 <em>Alternative: Aap <code>ssh -L 4000:localhost:4000 ubuntu@54.81.199.45</code> chala kar <code>http://localhost:4000</code> par bina kisi setting ke MIC use kar sakte hain!</em>
+        </p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" id="closeMicModalBtn">Dismiss</button>
+        <button class="btn-confirm-primary" id="copyFlagOriginBtn">
+          <span>📋 Copy Origin URL</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>

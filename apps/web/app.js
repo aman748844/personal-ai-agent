@@ -36,6 +36,12 @@ const rejectBtn = document.getElementById('rejectBtn');
 const humanVerificationModal = document.getElementById('humanVerificationModal');
 const humanDoneBtn = document.getElementById('humanDoneBtn');
 
+const micPermissionModal = document.getElementById('micPermissionModal');
+const closeMicModalBtn = document.getElementById('closeMicModalBtn');
+const copyFlagOriginBtn = document.getElementById('copyFlagOriginBtn');
+const currentOriginCode = document.getElementById('currentOriginCode');
+const copyOriginText = document.getElementById('copyOriginText');
+
 function getTimestamp() {
   const d = new Date();
   return d.toTimeString().split(' ')[0];
@@ -80,7 +86,15 @@ function startHeartbeatTimer() {
 function handleIncomingEvent(msg) {
   switch (msg.type) {
     case 'INITIAL_STATE':
-      if (msg.agentConnected) {
+      if (msg.devices && msg.devices.length > 0) {
+        const onlineDevice = msg.devices.find(d => d.status === 'ONLINE');
+        if (onlineDevice) {
+          activeConnectedDeviceId = onlineDevice.id;
+          setDeviceOnline(true, onlineDevice.name || onlineDevice.id);
+        } else {
+          setDeviceOnline(false);
+        }
+      } else if (msg.agentConnected) {
         setDeviceOnline(true);
       } else {
         setDeviceOnline(false);
@@ -88,6 +102,9 @@ function handleIncomingEvent(msg) {
       break;
 
     case 'DEVICE_STATUS_CHANGE':
+      if (msg.status === 'ONLINE') {
+        activeConnectedDeviceId = msg.deviceId || msg.hostname || 'device_aman_pc';
+      }
       setDeviceOnline(msg.status === 'ONLINE', msg.hostname || msg.deviceId);
       if (msg.status === 'ONLINE') {
         appendTerminalLine(`✓ Connected to ${msg.hostname || msg.deviceId} agent runtime`, 'terminal-success');
@@ -178,6 +195,48 @@ function handleIncomingEvent(msg) {
 }
 
 let currentConnectedDevice = 'Local PC';
+let activeConnectedDeviceId = 'device_aman_pc';
+
+// Setup Mic Permission Modal Elements
+if (currentOriginCode) currentOriginCode.innerText = window.location.origin;
+if (copyOriginText) copyOriginText.innerText = window.location.origin;
+
+if (closeMicModalBtn && micPermissionModal) {
+  closeMicModalBtn.addEventListener('click', () => {
+    micPermissionModal.classList.remove('active');
+  });
+}
+
+if (copyFlagOriginBtn) {
+  copyFlagOriginBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(window.location.origin).then(() => {
+      copyFlagOriginBtn.innerHTML = '<span>✓ Origin Copied!</span>';
+      setTimeout(() => {
+        copyFlagOriginBtn.innerHTML = '<span>📋 Copy Origin URL</span>';
+      }, 2500);
+    }).catch(() => {
+      // Fallback copy
+      const temp = document.createElement('input');
+      temp.value = window.location.origin;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand('copy');
+      document.body.removeChild(temp);
+      copyFlagOriginBtn.innerHTML = '<span>✓ Copied!</span>';
+      setTimeout(() => {
+        copyFlagOriginBtn.innerHTML = '<span>📋 Copy Origin URL</span>';
+      }, 2500);
+    });
+  });
+}
+
+function showMicPermissionModal() {
+  if (micPermissionModal) {
+    if (currentOriginCode) currentOriginCode.innerText = window.location.origin;
+    if (copyOriginText) copyOriginText.innerText = window.location.origin;
+    micPermissionModal.classList.add('active');
+  }
+}
 
 function setDeviceOnline(isOnline, deviceName = null) {
   if (deviceName) currentConnectedDevice = deviceName;
@@ -234,7 +293,7 @@ async function dispatchTask() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         userId: 'user_123',
-        deviceId: 'device_aman_pc',
+        deviceId: activeConnectedDeviceId || 'device_aman_pc',
         instruction
       })
     });
@@ -278,7 +337,7 @@ function initVoiceRecognition() {
     micBtn.classList.add('listening');
     if (micLabel) micLabel.innerText = 'LISTENING';
     if (voiceStatusBar) voiceStatusBar.style.display = 'flex';
-    if (voiceStatusText) voiceStatusText.innerText = 'Listening... Bolye (e.g. "Naukri.com open karo aur resume update karo")...';
+    if (voiceStatusText) voiceStatusText.innerText = 'Listening... Bolye (e.g. "YouTube par gaana bajao")...';
     appendTerminalLine('🎙️ Microphone active. Listening for voice instruction...', 'terminal-info');
     triggerMonolithPulse(0xf43f5e);
   };
@@ -306,11 +365,12 @@ function initVoiceRecognition() {
     console.warn('Voice recognition error:', event.error);
     stopVoiceRecognition();
     if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-      appendTerminalLine('⚠ Microphone access denied. Please click the mic icon in your browser URL bar to allow microphone permission.', 'terminal-warn');
+      appendTerminalLine('⚠ Microphone access blocked by browser security policy on HTTP.', 'terminal-warn');
       if (voiceStatusBar) {
         voiceStatusBar.style.display = 'flex';
-        if (voiceStatusText) voiceStatusText.innerText = 'Microphone permission blocked in browser. Please allow it.';
+        if (voiceStatusText) voiceStatusText.innerText = 'Microphone permission blocked in browser. Click flag settings to enable.';
       }
+      showMicPermissionModal();
     } else if (event.error !== 'no-speech') {
       appendTerminalLine(`Voice recognition error: ${event.error}`, 'terminal-warn');
     }
@@ -319,25 +379,46 @@ function initVoiceRecognition() {
   recognition.onend = () => {
     const text = instructionInput.value.trim();
     stopVoiceRecognition();
-    if (text) {
-      if (voiceStatusText) voiceStatusText.innerText = `✓ Voice instruction captured: "${text}"`;
+    if (text && text.length > 2) {
+      if (voiceStatusText) voiceStatusText.innerText = `✓ Captured: "${text}" ➔ Executing...`;
       appendTerminalLine(`Voice Command Captured: "${text}"`, 'terminal-success');
+      appendTerminalLine('Auto-dispatching execution plan...', 'terminal-info');
       // Auto-execute plan after a brief pause so user can see what was heard
       setTimeout(() => {
-        if (instructionInput.value.trim() === text && text.length > 2) {
+        if (instructionInput.value.trim() === text) {
           dispatchTask();
         }
-      }, 1000);
+      }, 700);
     }
   };
 }
 
-function startVoiceRecognition() {
+async function startVoiceRecognition() {
+  const isSecure = window.isSecureContext || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+  // Request native getUserMedia first if available to prompt microphone permission
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(track => track.stop());
+    } catch (err) {
+      console.warn('getUserMedia check:', err.message);
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        showMicPermissionModal();
+        return;
+      }
+    }
+  } else if (!isSecure) {
+    // Plain HTTP on remote IP without secure context: show helper modal
+    showMicPermissionModal();
+  }
+
   if (!recognition) initVoiceRecognition();
   if (!recognition) {
     alert('Voice recognition is not supported in this browser. Please use Google Chrome or Microsoft Edge.');
     return;
   }
+
   try {
     recognition.start();
   } catch (err) {

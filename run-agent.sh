@@ -35,9 +35,9 @@ fi
 
 if [ -z "$GATEWAY" ]; then
     echo "Enter your AWS Cloud Server Gateway URL:"
-    echo "(Example: ws://13.233.120.45:4000/agent or ws://localhost:4000/agent)"
-    read -p "Gateway WS URL [default: ws://localhost:4000/agent]: " user_input
-    GATEWAY="${user_input:-ws://localhost:4000/agent}"
+    echo "(Default: ws://54.81.199.45:4000/agent)"
+    read -p "Gateway WS URL [default: ws://54.81.199.45:4000/agent]: " user_input
+    GATEWAY="${user_input:-ws://54.81.199.45:4000/agent}"
 fi
 
 HOSTNAME=$(hostname)

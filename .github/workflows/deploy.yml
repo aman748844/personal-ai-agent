@@ -1,0 +1,22 @@
+name: Deploy to AWS EC2
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH into EC2 and Update Code
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/personal-ai-agent
+            git pull origin main
+            npm install --omit=dev
+            pm2 restart ai-agent-gateway
+            echo "Deployment to AWS EC2 completed successfully!"
