@@ -146,6 +146,18 @@ class LocalAgent {
         case 'browser.check_human_verification':
           result = await browserAgent.checkHumanVerification();
           break;
+        case 'browser.search_and_play':
+          result = await browserAgent.searchAndPlay(params.query);
+          break;
+        case 'browser.media_control':
+          result = await browserAgent.mediaControl(params.action || params.control);
+          break;
+        case 'browser.press_key':
+          result = await browserAgent.pressKey(params.key);
+          break;
+        case 'browser.scroll':
+          result = await browserAgent.scroll(params.direction, params.amount);
+          break;
 
         // Applications & OS
         case 'os.open_application':

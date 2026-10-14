@@ -177,4 +177,12 @@ server.listen(PORT, () => {
   logger.info('APIGateway', `WebSocket endpoints: ws://localhost:${PORT}/agent and ws://localhost:${PORT}/ui`);
 });
 
+process.on('uncaughtException', (err) => {
+  logger.error('APIGateway', 'Uncaught Exception:', err.stack || err.message);
+});
+
+process.on('unhandledRejection', (reason) => {
+  logger.error('APIGateway', 'Unhandled Rejection:', reason);
+});
+
 module.exports = { app, server };

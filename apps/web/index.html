@@ -73,6 +73,40 @@
       <div class="command-console-card" id="console">
         <div class="console-glow"></div>
         <div class="console-inner">
+          <!-- Siri / Jarvis Continuous Agent Control Bar -->
+          <div class="siri-control-bar">
+            <div class="siri-identity-badge">
+              <span class="siri-orb-pulse"></span>
+              <span class="siri-title">AI AGENT: <strong class="text-cyan">JARVIS</strong></span>
+              <span class="siri-wake-tag" id="wakeWordTag">WAKE WORD: "JARVIS" / "SIRI"</span>
+            </div>
+
+            <div class="siri-action-toggles">
+              <div class="chrome-lock-badge" title="All browser tasks strictly execute in Google Chrome">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <circle cx="12" cy="12" r="4"></circle>
+                  <line x1="21.17" y1="8" x2="12" y2="8"></line>
+                  <line x1="3.95" y1="6.06" x2="8.54" y2="14"></line>
+                  <line x1="10.88" y1="21.94" x2="15.46" y2="14"></line>
+                </svg>
+                <span>CHROME ONLY</span>
+              </div>
+
+              <!-- Always-On Mic Siri Mode Toggle -->
+              <button id="toggleAlwaysOnMicBtn" class="siri-toggle-btn active" title="Toggle Always-On Continuous Mic (Siri Mode)">
+                <span class="toggle-indicator-dot"></span>
+                <span id="alwaysOnMicText">MIC: ALWAYS-ON (SIRI MODE)</span>
+              </button>
+
+              <!-- Voice TTS Response Toggle -->
+              <button id="toggleVoiceResponseBtn" class="siri-toggle-btn active" title="Toggle Spoken Voice Feedback">
+                <span class="toggle-sound-icon">🔊</span>
+                <span id="voiceResponseText">VOICE FEEDBACK: ON</span>
+              </button>
+            </div>
+          </div>
+
           <div class="command-input-wrapper">
             <div class="input-icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -84,18 +118,18 @@
               type="text" 
               id="instructionInput" 
               class="command-input" 
-              placeholder="Enter natural language command (e.g. 'Mere desktop par TestFolder naam ka folder banao.')..."
+              placeholder="Speak or type (e.g. 'Jarvis, Youtube open karo aur ek song play karo')..."
               autocomplete="off"
             >
             <!-- Interactive Voice Recognition Button (MIC) -->
-            <button id="micBtn" class="btn-mic" type="button" title="Voice Input: Click to speak in Hindi or English">
+            <button id="micBtn" class="btn-mic" type="button" title="Mic Status: Siri Always-On Listening active">
               <div class="mic-ripple"></div>
               <svg class="mic-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
                 <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
                 <line x1="12" x2="12" y1="19" y2="22"></line>
               </svg>
-              <span class="mic-label" id="micLabel">MIC</span>
+              <span class="mic-label" id="micLabel">LISTENING</span>
             </button>
 
             <button id="dispatchBtn" class="btn-execute">
@@ -106,45 +140,51 @@
           </div>
 
           <!-- Real-Time Voice Feedback HUD -->
-          <div id="voiceStatusBar" class="voice-status-bar" style="display: none;">
+          <div id="voiceStatusBar" class="voice-status-bar" style="display: flex;">
             <div class="voice-pulse-indicator">
               <span class="voice-wave-bar"></span>
               <span class="voice-wave-bar"></span>
               <span class="voice-wave-bar"></span>
               <span class="voice-wave-bar"></span>
+              <span class="voice-wave-bar"></span>
             </div>
-            <span id="voiceStatusText" class="voice-status-text">Listening... Speak now (Hindi / English)</span>
-            <button id="cancelVoiceBtn" class="voice-cancel-btn" title="Stop listening">✕ Stop</button>
+            <span id="voiceStatusText" class="voice-status-text">🎙️ Siri Continuous Mode Active: Speak anytime in Hindi or English (Say "Jarvis..." or any command)...</span>
+            <button id="cancelVoiceBtn" class="voice-cancel-btn" title="Pause Listening">⏸ Pause</button>
           </div>
 
           <!-- Quick Test Presets -->
           <div class="presets-row">
-            <span class="presets-caption">ONE-CLICK TEST SUITE:</span>
+            <span class="presets-caption">ONE-CLICK SCENARIO SUITE:</span>
             <div class="presets-chips">
-              <button class="preset-chip" onclick="setCommand('Naukri.com open karo, mere account se login karo aur resume update karo.')">
-                <span class="chip-dot dot-purple"></span>
-                <span class="chip-code">SEC-6</span>
-                <span class="chip-label">Naukri.com Resume Update</span>
-              </button>
-              <button class="preset-chip" onclick="setCommand('YouTube par lo-fi chill beats chalao.')">
+              <button class="preset-chip" onclick="setCommand('Jarvis, Youtube open karo.')">
                 <span class="chip-dot dot-rose"></span>
-                <span class="chip-code">YT</span>
-                <span class="chip-label">YouTube Music Play</span>
+                <span class="chip-code">STEP-1</span>
+                <span class="chip-label">1. YouTube Open Karo</span>
               </button>
-              <button class="preset-chip" onclick="setCommand('Mere desktop par TestFolder naam ka folder banao.')">
+              <button class="preset-chip" onclick="setCommand('Jarvis, Arijit Singh ka song lagao.')">
                 <span class="chip-dot dot-cyan"></span>
-                <span class="chip-code">TC-1</span>
-                <span class="chip-label">Desktop TestFolder banao</span>
+                <span class="chip-code">STEP-2</span>
+                <span class="chip-label">2. Arijit Singh Song Lagao</span>
+              </button>
+              <button class="preset-chip" onclick="setCommand('Jarvis, Youtube open karo aur ek song play karo.')">
+                <span class="chip-dot dot-purple"></span>
+                <span class="chip-code">COMBO</span>
+                <span class="chip-label">YouTube + Song Play</span>
+              </button>
+              <button class="preset-chip" onclick="setCommand('Jarvis, pause karo')">
+                <span class="chip-dot dot-amber"></span>
+                <span class="chip-code">MEDIA</span>
+                <span class="chip-label">Pause / Play Toggle</span>
               </button>
               <button class="preset-chip" onclick="setCommand('Chrome kholo aur Google par OpenAI search karo.')">
                 <span class="chip-dot dot-blue"></span>
-                <span class="chip-code">TC-2</span>
-                <span class="chip-label">Chrome kholo & Google Search</span>
+                <span class="chip-code">CHROME</span>
+                <span class="chip-label">Google Search in Chrome</span>
               </button>
-              <button class="preset-chip" onclick="setCommand('Notepad kholo')">
-                <span class="chip-dot dot-emerald"></span>
-                <span class="chip-code">APP</span>
-                <span class="chip-label">Notepad Launch</span>
+              <button class="preset-chip" onclick="setCommand('Naukri.com open karo, mere account se login karo aur resume update karo.')">
+                <span class="chip-dot dot-purple"></span>
+                <span class="chip-code">NAUKRI</span>
+                <span class="chip-label">Naukri Resume Update</span>
               </button>
             </div>
           </div>

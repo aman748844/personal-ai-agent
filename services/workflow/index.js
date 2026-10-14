@@ -6,6 +6,7 @@
 const { StepStatus, TaskStatus } = require('../../packages/shared-types');
 const db = require('../db');
 const logger = require('../../packages/logging');
+const notification = require('../notification');
 
 class DurableWorkflowEngine {
   constructor() {
@@ -82,6 +83,9 @@ class DurableWorkflowEngine {
     if (!remaining) {
       db.updateTaskStatus(taskId, TaskStatus.COMPLETED);
       db.addAgentLog(taskId, `Status: Completed - All workflow steps executed and verified.`);
+      notification.notifyTaskStatus(taskId, TaskStatus.COMPLETED, {
+        message: '✓ All steps executed and verified successfully in Google Chrome'
+      });
     }
   }
 

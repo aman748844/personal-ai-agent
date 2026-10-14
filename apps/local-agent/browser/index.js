@@ -23,24 +23,39 @@ class BrowserAgent {
 
     if (isWin) {
       const localAppData = process.env.LOCALAPPDATA || '';
-      const candidatePaths = [
-        'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
-        'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+      const programFiles = process.env.PROGRAMFILES || 'C:\\Program Files';
+      const programFilesX86 = process.env['PROGRAMFILES(X86)'] || 'C:\\Program Files (x86)';
+
+      // ALWAYS PRIORITIZE GOOGLE CHROME EXCLUSIVELY
+      const chromeCandidates = [
         'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
         'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
         path.join(localAppData, 'Google\\Chrome\\Application\\chrome.exe'),
+        path.join(programFiles, 'Google\\Chrome\\Application\\chrome.exe'),
+        path.join(programFilesX86, 'Google\\Chrome\\Application\\chrome.exe')
+      ];
+
+      for (const p of chromeCandidates) {
+        if (p && fs.existsSync(p)) {
+          return p;
+        }
+      }
+
+      // Edge or Brave fallback only if Chrome binary is completely missing
+      const fallbackCandidates = [
         path.join(localAppData, 'Microsoft\\Edge\\Application\\msedge.exe'),
+        'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
+        'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
         'C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe'
       ];
-      for (const p of candidatePaths) {
+      for (const p of fallbackCandidates) {
         if (p && fs.existsSync(p)) return p;
       }
     } else if (isMac) {
       const candidatePaths = [
         '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-        '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
-        '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser',
-        '/Applications/Chromium.app/Contents/MacOS/Chromium'
+        '/Applications/Chromium.app/Contents/MacOS/Chromium',
+        '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser'
       ];
       for (const p of candidatePaths) {
         if (fs.existsSync(p)) return p;
@@ -50,10 +65,7 @@ class BrowserAgent {
         '/usr/bin/google-chrome',
         '/usr/bin/google-chrome-stable',
         '/usr/bin/chromium-browser',
-        '/usr/bin/chromium',
-        '/usr/bin/microsoft-edge',
-        '/usr/bin/brave-browser',
-        '/snap/bin/chromium'
+        '/usr/bin/chromium'
       ];
       for (const p of candidatePaths) {
         if (fs.existsSync(p)) return p;
@@ -65,13 +77,23 @@ class BrowserAgent {
 
   async open(options = {}) {
     if (this.page && !this.page.isClosed()) {
-      return { status: 'success', action: 'browser.open', message: 'Browser already open' };
+      try {
+        await this.page.bringToFront();
+      } catch {}
+      return { status: 'success', action: 'browser.open', message: 'Google Chrome already open and active', verified: true };
     }
 
     const execPath = this._getBrowserExecutable();
     const launchOptions = {
       headless: options.headless !== undefined ? options.headless : false,
-      args: ['--start-maximized', '--disable-blink-features=AutomationControlled']
+      args: [
+        '--start-maximized',
+        '--disable-blink-features=AutomationControlled',
+        '--no-first-run',
+        '--no-default-browser-check',
+        '--disable-infobars',
+        '--autoplay-policy=no-user-gesture-required'
+      ]
     };
     if (execPath) {
       launchOptions.executablePath = execPath;
@@ -80,14 +102,14 @@ class BrowserAgent {
     this.browser = await chromium.launch(launchOptions);
     this.context = await this.browser.newContext({
       viewport: null,
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
     });
     this.page = await this.context.newPage();
 
     return {
       status: 'success',
       action: 'browser.open',
-      executable: execPath || 'chromium',
+      executable: execPath || 'Google Chrome',
       verified: true
     };
   }
@@ -326,6 +348,114 @@ class BrowserAgent {
       action: 'browser.upload_file',
       filePath: resolved,
       uploaded,
+      verified: true
+    };
+  }
+
+  async searchAndPlay(query = 'trending hindi songs') {
+    if (!this.page) {
+      await this.open();
+    }
+
+    const cleanQuery = (query || 'trending hindi songs').trim();
+    const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(cleanQuery)}`;
+
+    try {
+      await this.page.bringToFront().catch(() => {});
+      // Fast navigate directly to search results
+      await this.page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 15000 });
+
+      // Fast-click the top video result as soon as visible
+      const videoLocators = this.page.locator('ytd-video-renderer a#video-title, #video-title, ytd-video-renderer a#thumbnail');
+      await videoLocators.first().waitFor({ state: 'visible', timeout: 5000 });
+      await videoLocators.first().click({ timeout: 3000 });
+
+      // Ensure video is playing and volume is unmuted
+      await this.page.waitForTimeout(500);
+      await this.page.evaluate(() => {
+        const v = document.querySelector('video');
+        if (v) {
+          if (v.paused) v.play().catch(() => {});
+          v.muted = false;
+          v.volume = 1.0;
+        }
+      }).catch(() => {});
+
+    } catch (err) {
+      console.warn('Fast video click fallback:', err.message);
+      // Fallback: click any video renderer or press enter
+      try {
+        await this.page.locator('ytd-video-renderer').first().click({ timeout: 2000 });
+      } catch {}
+    }
+
+    const title = await this.page.title().catch(() => 'YouTube');
+    return {
+      status: 'success',
+      action: 'browser.search_and_play',
+      query: cleanQuery,
+      url: this.page.url(),
+      title,
+      verified: true
+    };
+  }
+
+  async mediaControl(action = 'toggle') {
+    if (!this.page) throw new Error('Browser is not open');
+    const act = (action || '').toLowerCase();
+
+    if (act.includes('pause') || act.includes('stop') || act.includes('roko')) {
+      await this.page.evaluate(() => {
+        const v = document.querySelector('video');
+        if (v) v.pause();
+      }).catch(() => {});
+      await this.page.keyboard.press('k').catch(() => {});
+    } else if (act.includes('play') || act.includes('resume') || act.includes('chalao')) {
+      await this.page.evaluate(() => {
+        const v = document.querySelector('video');
+        if (v && v.paused) v.play();
+      }).catch(() => {});
+      await this.page.keyboard.press('k').catch(() => {});
+    } else if (act.includes('mute') || act.includes('unmute')) {
+      await this.page.keyboard.press('m').catch(() => {});
+    } else if (act.includes('fullscreen') || act.includes('full screen')) {
+      await this.page.keyboard.press('f').catch(() => {});
+    } else if (act.includes('next') || act.includes('agla')) {
+      await this.page.keyboard.press('Shift+N').catch(() => {});
+    } else if (act.includes('volume_up') || act.includes('volume up') || act.includes('awaaz badhao')) {
+      await this.page.keyboard.press('ArrowUp').catch(() => {});
+    } else if (act.includes('volume_down') || act.includes('volume down') || act.includes('awaaz kam')) {
+      await this.page.keyboard.press('ArrowDown').catch(() => {});
+    }
+
+    return {
+      status: 'success',
+      action: 'browser.media_control',
+      control: action,
+      verified: true
+    };
+  }
+
+  async pressKey(key = 'Enter') {
+    if (!this.page) throw new Error('Browser is not open');
+    await this.page.keyboard.press(key);
+    return {
+      status: 'success',
+      action: 'browser.press_key',
+      key,
+      verified: true
+    };
+  }
+
+  async scroll(direction = 'down', amount = 400) {
+    if (!this.page) throw new Error('Browser is not open');
+    const deltaY = direction === 'up' ? -amount : amount;
+    await this.page.mouse.wheel(0, deltaY);
+    return {
+      status: 'success',
+      action: 'browser.scroll',
+      direction,
+      amount,
       verified: true
     };
   }

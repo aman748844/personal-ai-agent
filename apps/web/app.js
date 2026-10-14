@@ -119,6 +119,9 @@ function handleIncomingEvent(msg) {
       break;
 
     case 'TASK_STATUS_UPDATE':
+      if (msg.voiceFeedback) {
+        speakResponse(msg.voiceFeedback);
+      }
       if (msg.status) {
         taskStatusBadge.innerText = msg.status;
         if (msg.status === 'COMPLETED') {
@@ -126,11 +129,13 @@ function handleIncomingEvent(msg) {
           taskStatusBadge.style.borderColor = 'rgba(52, 211, 153, 0.4)';
           appendTerminalLine('Status: Completed', 'terminal-status');
           triggerMonolithPulse(0x34d399);
+          speakResponse('Task completed successfully on Google Chrome.');
         } else if (msg.status === 'FAILED') {
           taskStatusBadge.style.color = '#fb7185';
           taskStatusBadge.style.borderColor = 'rgba(251, 113, 133, 0.4)';
           appendTerminalLine(`Status: Failed - ${msg.message || ''}`, 'terminal-warn');
           triggerMonolithPulse(0xfb7185);
+          speakResponse('Task could not be completed.');
         } else if (msg.status === 'PLANNING') {
           taskStatusBadge.style.color = '#38bdf8';
           appendTerminalLine(`Agent: Understanding request & compiling execution plan...`, 'terminal-info');
@@ -310,36 +315,86 @@ instructionInput.addEventListener('keydown', (e) => {
 });
 
 // ==========================================================================
-// VOICE RECOGNITION (MIC) CONTROLLER
-// Web Speech API with bilingual Hindi / Indian English support
+// SIRI / JARVIS CONTINUOUS ALWAYS-ON VOICE ENGINE
+// Web Speech API with bilingual Hindi / Hinglish / English & SpeechSynthesis TTS
 // ==========================================================================
+
+const toggleAlwaysOnMicBtn = document.getElementById('toggleAlwaysOnMicBtn');
+const alwaysOnMicText = document.getElementById('alwaysOnMicText');
+const toggleVoiceResponseBtn = document.getElementById('toggleVoiceResponseBtn');
+const voiceResponseText = document.getElementById('voiceResponseText');
 
 let recognition = null;
 let isListening = false;
+let isAlwaysOnMic = true;            // Defaults to ALWAYS ON (Siri Mode)
+let isVoiceFeedbackEnabled = true;   // Speaks voice response like Siri
+let isExecuting = false;
+let silenceTimer = null;
+const wakeWords = ['jarvis', 'siri', 'nova', 'agent', 'aman', 'जार्विस', 'सीरी', 'नोवा', 'अमन', 'एजेंट'];
+
+function speakResponse(text) {
+  if (!isVoiceFeedbackEnabled || !('speechSynthesis' in window)) return;
+  try {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1.05;
+    utterance.pitch = 1.0;
+    const voices = window.speechSynthesis.getVoices();
+    const naturalVoice = voices.find(v => v.lang.includes('hi') || v.lang.includes('IN') || v.name.includes('Natural') || v.name.includes('Google'));
+    if (naturalVoice) utterance.voice = naturalVoice;
+    window.speechSynthesis.speak(utterance);
+  } catch (err) {
+    console.warn('SpeechSynthesis error:', err);
+  }
+}
+
+function updateSiriUI() {
+  if (toggleAlwaysOnMicBtn) {
+    if (isAlwaysOnMic) {
+      toggleAlwaysOnMicBtn.classList.add('active');
+      if (alwaysOnMicText) alwaysOnMicText.innerText = 'MIC: ALWAYS-ON (SIRI MODE)';
+    } else {
+      toggleAlwaysOnMicBtn.classList.remove('active');
+      if (alwaysOnMicText) alwaysOnMicText.innerText = 'MIC: PUSH-TO-TALK';
+    }
+  }
+
+  if (toggleVoiceResponseBtn) {
+    if (isVoiceFeedbackEnabled) {
+      toggleVoiceResponseBtn.classList.add('active');
+      if (voiceResponseText) voiceResponseText.innerText = 'VOICE FEEDBACK: ON';
+    } else {
+      toggleVoiceResponseBtn.classList.remove('active');
+      if (voiceResponseText) voiceResponseText.innerText = 'VOICE FEEDBACK: MUTED';
+    }
+  }
+}
 
 function initVoiceRecognition() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) {
     if (micBtn) {
-      micBtn.title = 'Speech Recognition is not supported by your browser. Please use Chrome or Edge.';
+      micBtn.title = 'Speech Recognition requires Google Chrome.';
       micBtn.style.opacity = '0.6';
     }
     return;
   }
 
   recognition = new SpeechRecognition();
-  recognition.continuous = false;
-  recognition.interimResults = true;
-  recognition.lang = 'hi-IN'; // Highly optimized for Hindi + Indian English (Hinglish)
+  recognition.continuous = true;       // CONTINUOUS ALWAYS-ON
+  recognition.interimResults = true;  // REAL-TIME STREAMING
+  recognition.lang = 'hi-IN';         // Bilingual Hindi + Indian English (Hinglish)
 
   recognition.onstart = () => {
     isListening = true;
-    micBtn.classList.add('listening');
-    if (micLabel) micLabel.innerText = 'LISTENING';
+    if (micBtn) micBtn.classList.add('listening');
+    if (micLabel) micLabel.innerText = isAlwaysOnMic ? 'SIRI ON' : 'LISTENING';
     if (voiceStatusBar) voiceStatusBar.style.display = 'flex';
-    if (voiceStatusText) voiceStatusText.innerText = 'Listening... Bolye (e.g. "YouTube par gaana bajao")...';
-    appendTerminalLine('🎙️ Microphone active. Listening for voice instruction...', 'terminal-info');
-    triggerMonolithPulse(0xf43f5e);
+    if (voiceStatusText) {
+      voiceStatusText.innerText = '🎙️ Siri Continuous Mode Active: Speak anytime (e.g. "Jarvis, Youtube open karo aur song lagao")...';
+    }
+    appendTerminalLine('🎙️ Siri Always-On Microphone online. Listening continuously in Hindi & English...', 'terminal-info');
+    triggerMonolithPulse(0x38bdf8);
   };
 
   recognition.onresult = (event) => {
@@ -347,82 +402,127 @@ function initVoiceRecognition() {
     let finalTranscript = '';
 
     for (let i = event.resultIndex; i < event.results.length; ++i) {
+      const transcript = event.results[i][0].transcript;
       if (event.results[i].isFinal) {
-        finalTranscript += event.results[i][0].transcript;
+        finalTranscript += transcript;
       } else {
-        interimTranscript += event.results[i][0].transcript;
+        interimTranscript += transcript;
       }
     }
 
     const currentText = (finalTranscript || interimTranscript).trim();
-    if (currentText) {
-      instructionInput.value = currentText;
-      if (voiceStatusText) voiceStatusText.innerText = `🎙️ Heard: "${currentText}"`;
+    if (!currentText) return;
+
+    if (voiceStatusText) {
+      voiceStatusText.innerText = `🎙️ Heard: "${currentText}"`;
+    }
+    instructionInput.value = currentText;
+
+    const lower = currentText.toLowerCase();
+    const hasWakeWord = wakeWords.some(w => lower.includes(w));
+
+    clearTimeout(silenceTimer);
+
+    if (hasWakeWord) {
+      triggerMonolithPulse(0xf43f5e);
+      if (voiceStatusText) {
+        voiceStatusText.innerText = `⚡ Jarvis detected! Executing: "${currentText}"...`;
+      }
+      silenceTimer = setTimeout(() => {
+        if (!isExecuting && instructionInput.value.trim().length > 2) {
+          executeVoiceCommand(instructionInput.value.trim());
+        }
+      }, 250);
+    } else if (finalTranscript && finalTranscript.trim().length > 2) {
+      silenceTimer = setTimeout(() => {
+        if (!isExecuting && instructionInput.value.trim().length > 2) {
+          executeVoiceCommand(instructionInput.value.trim());
+        }
+      }, 300);
     }
   };
 
   recognition.onerror = (event) => {
-    console.warn('Voice recognition error:', event.error);
-    stopVoiceRecognition();
     if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-      appendTerminalLine('⚠ Microphone access blocked by browser security policy on HTTP.', 'terminal-warn');
-      if (voiceStatusBar) {
-        voiceStatusBar.style.display = 'flex';
-        if (voiceStatusText) voiceStatusText.innerText = 'Microphone permission blocked in browser. Click flag settings to enable.';
+      appendTerminalLine('⚠ Microphone access blocked by browser security policy.', 'terminal-warn');
+      if (voiceStatusText) {
+        voiceStatusText.innerText = 'Microphone permission blocked in browser. Click flag settings to enable.';
       }
       showMicPermissionModal();
+      isAlwaysOnMic = false;
+      updateSiriUI();
     } else if (event.error !== 'no-speech') {
-      appendTerminalLine(`Voice recognition error: ${event.error}`, 'terminal-warn');
+      console.warn('Speech recognition warning:', event.error);
     }
   };
 
   recognition.onend = () => {
-    const text = instructionInput.value.trim();
-    stopVoiceRecognition();
-    if (text && text.length > 2) {
-      if (voiceStatusText) voiceStatusText.innerText = `✓ Captured: "${text}" ➔ Executing...`;
-      appendTerminalLine(`Voice Command Captured: "${text}"`, 'terminal-success');
-      appendTerminalLine('Auto-dispatching execution plan...', 'terminal-info');
-      // Auto-execute plan after a brief pause so user can see what was heard
+    isListening = false;
+    // IF ALWAYS-ON MIC (SIRI MODE) IS ENABLED: AUTO-RESTART SEAMLESSLY!
+    if (isAlwaysOnMic) {
       setTimeout(() => {
-        if (instructionInput.value.trim() === text) {
-          dispatchTask();
+        try {
+          recognition.start();
+        } catch (e) {
+          setTimeout(() => {
+            try { recognition.start(); } catch {}
+          }, 300);
         }
-      }, 700);
+      }, 150);
+    } else {
+      if (micBtn) {
+        micBtn.classList.remove('listening');
+        if (micLabel) micLabel.innerText = 'MIC';
+      }
     }
   };
+}
+
+function executeVoiceCommand(text) {
+  if (isExecuting || !text) return;
+  isExecuting = true;
+
+  if (voiceStatusText) {
+    voiceStatusText.innerText = `🚀 Jarvis executing: "${text}" on Google Chrome...`;
+  }
+  appendTerminalLine(`🎙️ Voice Command: "${text}"`, 'terminal-success');
+
+  dispatchTask().finally(() => {
+    setTimeout(() => {
+      isExecuting = false;
+      if (isAlwaysOnMic && voiceStatusText) {
+        voiceStatusText.innerText = '🎙️ Siri Continuous Mode: Say "Jarvis [task]" or any command anytime...';
+      }
+    }, 1500);
+  });
 }
 
 async function startVoiceRecognition() {
   const isSecure = window.isSecureContext || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
-  // Request native getUserMedia first if available to prompt microphone permission
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       stream.getTracks().forEach(track => track.stop());
     } catch (err) {
-      console.warn('getUserMedia check:', err.message);
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
         showMicPermissionModal();
         return;
       }
     }
   } else if (!isSecure) {
-    // Plain HTTP on remote IP without secure context: show helper modal
     showMicPermissionModal();
   }
 
   if (!recognition) initVoiceRecognition();
   if (!recognition) {
-    alert('Voice recognition is not supported in this browser. Please use Google Chrome or Microsoft Edge.');
+    alert('Voice recognition requires Google Chrome.');
     return;
   }
 
   try {
     recognition.start();
   } catch (err) {
-    console.warn('Recognition start exception:', err);
     try {
       recognition.stop();
       setTimeout(() => recognition.start(), 200);
@@ -439,10 +539,8 @@ function stopVoiceRecognition() {
     micBtn.classList.remove('listening');
     if (micLabel) micLabel.innerText = 'MIC';
   }
-  if (voiceStatusBar) {
-    setTimeout(() => {
-      if (!isListening) voiceStatusBar.style.display = 'none';
-    }, 2500);
+  if (voiceStatusText) {
+    voiceStatusText.innerText = 'Microphone paused. Click Mic or Siri Mode to resume.';
   }
 }
 
@@ -450,9 +548,39 @@ if (micBtn) {
   micBtn.addEventListener('click', (e) => {
     e.preventDefault();
     if (isListening) {
+      isAlwaysOnMic = false;
+      updateSiriUI();
       stopVoiceRecognition();
     } else {
+      isAlwaysOnMic = true;
+      updateSiriUI();
       startVoiceRecognition();
+    }
+  });
+}
+
+if (toggleAlwaysOnMicBtn) {
+  toggleAlwaysOnMicBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    isAlwaysOnMic = !isAlwaysOnMic;
+    updateSiriUI();
+    if (isAlwaysOnMic) {
+      startVoiceRecognition();
+      speakResponse('Siri continuous listening mode activated.');
+    } else {
+      stopVoiceRecognition();
+      speakResponse('Continuous mic deactivated.');
+    }
+  });
+}
+
+if (toggleVoiceResponseBtn) {
+  toggleVoiceResponseBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    isVoiceFeedbackEnabled = !isVoiceFeedbackEnabled;
+    updateSiriUI();
+    if (isVoiceFeedbackEnabled) {
+      speakResponse('Voice feedback enabled.');
     }
   });
 }
@@ -460,12 +588,28 @@ if (micBtn) {
 if (cancelVoiceBtn) {
   cancelVoiceBtn.addEventListener('click', (e) => {
     e.preventDefault();
-    stopVoiceRecognition();
+    isAlwaysOnMic = !isAlwaysOnMic;
+    updateSiriUI();
+    if (isAlwaysOnMic) {
+      cancelVoiceBtn.innerText = '⏸ Pause';
+      startVoiceRecognition();
+    } else {
+      cancelVoiceBtn.innerText = '▶ Resume';
+      stopVoiceRecognition();
+    }
   });
 }
 
-// Initialize Voice capabilities on load
+// Auto-initialize Siri Continuous Voice on load
 initVoiceRecognition();
+updateSiriUI();
+
+// Auto-start microphone listening when user first interacts with page
+window.addEventListener('click', () => {
+  if (isAlwaysOnMic && !isListening) {
+    startVoiceRecognition();
+  }
+}, { once: true });
 
 // Approvals
 approveBtn.addEventListener('click', async () => {

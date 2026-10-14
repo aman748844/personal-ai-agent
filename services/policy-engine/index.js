@@ -21,6 +21,10 @@ class PolicyEngine {
       'browser.observe': RiskLevel.LOW,
       'browser.check_human_verification': RiskLevel.LOW,
       'browser.wait': RiskLevel.LOW,
+      'browser.search_and_play': RiskLevel.LOW,
+      'browser.media_control': RiskLevel.LOW,
+      'browser.press_key': RiskLevel.LOW,
+      'browser.scroll': RiskLevel.LOW,
       'os.process_list': RiskLevel.LOW,
       'computer.screenshot': RiskLevel.LOW,
 

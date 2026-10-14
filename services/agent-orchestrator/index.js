@@ -47,13 +47,18 @@ class AgentOrchestrator {
     const plan = await aiGateway.generatePlan(instruction);
     db.addAgentLog(taskId, `Generated plan with goal: "${plan.goal}"`);
 
+    notification.notifyTaskStatus(taskId, TaskStatus.PLANNING, {
+      message: `Goal: ${plan.goal}`,
+      voiceFeedback: plan.voiceFeedback || `Executing ${plan.goal}`
+    });
+
     // 2. INITIALIZE DURABLE WORKFLOW (Temporal pattern)
     await durableWorkflow.initWorkflow(taskId, plan);
 
     // 3. EXECUTE LOOP
     this.runExecutionLoop(taskId);
 
-    return { taskId, goal: plan.goal };
+    return { taskId, goal: plan.goal, voiceFeedback: plan.voiceFeedback };
   }
 
   async runExecutionLoop(taskId) {

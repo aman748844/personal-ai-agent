@@ -26,23 +26,31 @@ if %errorlevel% neq 0 (
     )
 )
 
-REM Default AWS Gateway URL
-set GATEWAY=ws://54.81.199.45:4000/agent
+REM Default Gateway URL
+set GATEWAY=ws://localhost:4000/agent
 
 if not "%~1"=="" (
     set GATEWAY=%~1
+    goto :CONNECT
 )
 
-echo Target AWS Server: %GATEWAY%
-echo Local Device Name: %COMPUTERNAME%
+echo Select Connection Target:
+echo   [1] Local PC Gateway   - ws://localhost:4000/agent (Default)
+echo   [2] AWS Cloud Server   - ws://54.81.199.45:4000/agent
+echo   [3] Custom WebSocket URL
 echo.
-echo Press ENTER to connect directly to this AWS Server,
-echo or paste a different URL:
-set /p USER_GATEWAY="AWS Gateway URL [%GATEWAY%]: "
+set /p TARGET_CHOICE="Select Option [Press ENTER for 1 - Local]: "
 
-if not "%USER_GATEWAY%"=="" (
-    set GATEWAY=%USER_GATEWAY%
+if "%TARGET_CHOICE%"=="2" (
+    set GATEWAY=ws://54.81.199.45:4000/agent
+) else if "%TARGET_CHOICE%"=="3" (
+    set /p USER_GATEWAY="Enter Custom WebSocket URL: "
+    if not "%USER_GATEWAY%"=="" set GATEWAY=%USER_GATEWAY%
+) else (
+    set GATEWAY=ws://localhost:4000/agent
 )
+
+:CONNECT
 
 echo.
 echo ========================================================

@@ -214,6 +214,55 @@ const TOOL_DEFINITIONS = [
       }
     }
   },
+  {
+    name: 'browser.search_and_play',
+    category: 'browser',
+    description: 'Searches YouTube and starts media playback immediately in Google Chrome',
+    risk: RiskLevel.LOW,
+    parameters: {
+      type: 'object',
+      properties: {
+        query: { type: 'string' }
+      }
+    }
+  },
+  {
+    name: 'browser.media_control',
+    category: 'browser',
+    description: 'Controls active media in browser (play, pause, fullscreen, mute, next, volume)',
+    risk: RiskLevel.LOW,
+    parameters: {
+      type: 'object',
+      properties: {
+        action: { type: 'string' }
+      }
+    }
+  },
+  {
+    name: 'browser.press_key',
+    category: 'browser',
+    description: 'Simulates a keyboard key press on the active browser page',
+    risk: RiskLevel.LOW,
+    parameters: {
+      type: 'object',
+      properties: {
+        key: { type: 'string' }
+      }
+    }
+  },
+  {
+    name: 'browser.scroll',
+    category: 'browser',
+    description: 'Scrolls the active browser page up or down',
+    risk: RiskLevel.LOW,
+    parameters: {
+      type: 'object',
+      properties: {
+        direction: { type: 'string' },
+        amount: { type: 'number' }
+      }
+    }
+  },
 
   // OS & Application Tools
   {
